@@ -68,3 +68,28 @@ $( function () {
 		} );
 	} );
 } );
+
+/**
+ * Add LeafletJS to image, for zooming and panning.
+ */
+$( function () {
+	var imagemap, $imageElement,
+		$imageWrapper = $( '#translation-image' );
+	if ( $imageWrapper.length !== 1 ) {
+		// Don't do anything if the translation image isn't present.
+		return;
+	}
+	$imageElement = $imageWrapper.find( 'img' );
+	$imageElement.css( 'visibility', 'hidden' );
+	$imageWrapper.css( {
+		height: '80vh',
+		width: 'auto'
+	} );
+	imagemap = L.map( $imageWrapper.attr( 'id' ), {
+		crs: L.CRS.Simple,
+		center: [ $imageElement.height() / 2, $imageElement.width() / 2 ],
+		zoom: 0
+	} );
+	L.imageOverlay( $imageElement.attr( 'src' ), [ [ 0, 0 ], [ $imageElement.height(), $imageElement.width() ] ] )
+		.addTo( imagemap );
+} );
