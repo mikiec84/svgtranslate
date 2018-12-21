@@ -9,22 +9,29 @@ $( function () {
 		return;
 	}
 	function onSelectTargetLang( language ) {
-		// Save the language name and code in the widget.
+		var $imgElement, newImageUrl;
+		// 1. Save the language name and code in the widget.
 		this.setLabel( $.uls.data.languages[ language ][ 2 ] );
 		this.setData( language );
-		// Also switch what's displayed in the form when a new language is selected in the ULS.
+		this.setValue( language );
+		// 2. Switch what's displayed in the form when a new language is selected in the ULS.
 		$( '.translation-fields .oo-ui-fieldLayout' ).each( function () {
-			var field = OO.ui.infuse( $( this ) ).getField();
-			if ( appConfig.translations[ field.data.nodeId ] &&
-				appConfig.translations[ field.data.nodeId ][ language ]
+			var field = OO.ui.infuse( $( this ) ).getField(),
+				tspanId = field.data[ 'tspan-id' ];
+			if ( appConfig.translations[ tspanId ] &&
+				appConfig.translations[ tspanId ][ language ]
 			) {
 				// If there's a translation available, set the field's value.
-				field.setValue( appConfig.translations[ field.data.nodeId ][ language ].text );
+				field.setValue( appConfig.translations[ tspanId ][ language ].text );
 			} else {
 				// Otherwise, blank the field.
 				field.setValue( '' );
 			}
 		} );
+		// 3. Update the image.
+		$imgElement = $( '.image img' );
+		newImageUrl = $imgElement.attr( 'src' ).replace( /[a-z_-]*\.png.*$/, language + '.png' );
+		$imgElement.attr( 'src', newImageUrl );
 	}
 	targetLangButton = OO.ui.infuse( $targetLangButton );
 	targetLangButton.$element.uls( {
@@ -66,5 +73,27 @@ $( function () {
 				fieldLayout.setLabel( appConfig.translations[ nodeId ][ newLangCode ].text );
 			}
 		} );
+	} );
+} );
+
+/**
+ * When a translation field is changed, update the image preview.
+ */
+$( function () {
+	$( '.translation-fields .oo-ui-fieldLayout .oo-ui-inputWidget-input' ).on( 'blur', function () {
+		var $imgElement, newImageUrl,
+			targetLangWidget = OO.ui.infuse( $( '.target-lang-widget' ) ),
+			targetLangCode = targetLangWidget.getValue(),
+			requestParams = {};
+		// Go through all fields and construct the request parameters.
+		$( '.translation-fields .oo-ui-fieldLayout' ).each( function () {
+			var fieldLayout = OO.ui.infuse( $( this ) ),
+				tspanId = fieldLayout.getField().data[ 'tspan-id' ];
+			requestParams[ tspanId ] = fieldLayout.getField().getValue();
+		} );
+		// Update the image.
+		$imgElement = $( '.image img' );
+		newImageUrl = $imgElement.attr( 'src' ).replace( /[a-z_-]*\.png$/, targetLangCode + '.png?' ) + $.param( requestParams );
+		$imgElement.attr( 'src', newImageUrl );
 	} );
 } );

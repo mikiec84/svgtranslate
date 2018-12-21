@@ -31,37 +31,25 @@ class ApiController extends AbstractController
     }
 
     /**
-     * Serve a PNG rendering of the given SVG in the given language.
+     * Serve a PNG rendering of the given SVG in the given language, optionally modifying its
+     * messages based on what's passed in the query string.
      * @Route("/api/file/{filename}/{lang}.png", name="api_file", methods="GET")
-     *
-     * @param string $filename
-     * @return Response
-     */
-    public function getFile(string $filename, string $lang): Response
-    {
-        $filename = Title::normalize($filename);
-        return $this->serveContent($this->cache->getPath($filename), $lang);
-    }
-
-    /**
-     * Serve a PNG rendering of the given SVG in the given language, based on the POSTed translations.
-     * @Route("/api/file/{filename}/{lang}.png", name="api_file_translated", methods="POST")
      * @param string $filename
      * @param Request $request
      * @return Response
      */
-    public function getFileWithTranslations(string $filename, string $lang, Request $request): Response
+    public function getFile(string $filename, string $lang, Request $request): Response
     {
         $filename = Title::normalize($filename);
-        $json = $request->getContent();
-        if ('' === $json) {
-            return $this->getFile($filename, $lang);
+        if (0 === $request->query->count()) {
+            // If there are no translations, send the existing file back in the desired language.
+            return $this->serveContent($this->cache->getPath($filename), $lang);
         }
 
-        $translations = \GuzzleHttp\json_decode($json, true);
+        // Get the SVG file, and add in the new translations.
         $path = $this->cache->getPath($filename);
         $file = new SvgFile($path);
-        $file->switchToTranslationSet($translations);
+        $file->setTranslations($lang, $request->query->getIterator()->getArrayCopy());
 
         // Write SVG file to filesystem, so it can be converted by rsvg. Use a unique filename
         // because multiple users can be translating the same file at the same time (whereas
