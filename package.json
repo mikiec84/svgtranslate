@@ -7,7 +7,7 @@
     "@wikimedia/jquery.i18n": "^1.0.5",
     "copy-webpack-plugin": "^4.6.0",
     "css-loader": "git+https://github.com/webpack-contrib/css-loader.git#21fcddfe500cb6fc7679ed1fc4d034b55f647945",
-    "jquery": "^3.3.1",
+    "jquery": "^3.5.0",
     "jquery.uls": "^0.1.0",
     "js-cookie": "^2.2.0",
     "less": "^3.8.1",
